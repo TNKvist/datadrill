@@ -197,7 +197,7 @@ class App(QMainWindow):
         self.location = None
         self.chosen_sheet = None
         self.df = None
-        self.title = 'Data Drill beta'
+        self.title = 'Data Drill v1.0'
         self.left = 300
         self.top = 400
         self.width = 500
