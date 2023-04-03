@@ -233,6 +233,12 @@ class App(QMainWindow):
         self.label1.setFont(QFont("Roboto", 10))
         self.label1.adjustSize()
         self.label1.move(20,85)
+        self.label2 = QLabel(self)
+        self.label2.setText("TBD")
+        self.label2.setFont(QFont("Roboto", 10))
+        self.label2.adjustSize()
+        self.label2.move(170,120)
+        self.label2.hide()
         #button.setToolTip('This is an example button')
         button = QPushButton('File', self)
         button.move(20,50)
@@ -284,7 +290,7 @@ class App(QMainWindow):
     def select_file(self):
         file , check = QFileDialog.getOpenFileName(None, "QFileDialog.getOpenFileName()",
                                                    "", "All Files (*);;Python Files (*.py);;Text Files (*.txt)")
-        if check:
+        if check and ( "MRP" in str(file) or "Client" in str(file)):
             self.df = pd.read_excel(file, None)
             msg = QMessageBox()
             msg.setWindowTitle("Success")
@@ -294,13 +300,27 @@ class App(QMainWindow):
             self.label1.setText("File: " + str(file))
             self.label1.adjustSize()
             self.get_sheets()
+            if "MRP" in str(file):
+                self.df[list(self.df.keys())[0]].rename(columns={"Material": "Item"},inplace=True)
+                self.label2.setText("MRP")
+            else:
+                self.label2.setText("Client Open")
+                
+            self.label2.show()
+            self.label2.adjustSize()
             self.button1.show()
+        else:
+            msg = QMessageBox()
+            msg.setWindowTitle("Uh Oh")
+            msg.setText("Choose MRP or Client Open File!")
+            msg.setWindowIcon(QIcon('image.png'))
+            msg.exec_()
     
     def get_sheets(self):
+        self.combo1.clear()
         self.sheets = self.df.keys()
         for sheet in self.sheets:
             self.combo1.addItem(sheet)
-        self.combo1.removeItem(0)
         #self.combo1.adjustSize()
         
     def flashSplash(self):
@@ -318,7 +338,7 @@ class App(QMainWindow):
 if __name__ == '__main__':
     global ref
     global ref1
-    ref = pd.read_csv("test.csv")
+    ref = pd.read_csv("reference.csv")
     ref1 = pd.read_csv("output.csv")
     ref['Material No']= ref['Material No'].astype(str).apply(lambda x: x.split(".")[0])
     ref1['Material No']= ref1['Material No'].astype(str).apply(lambda x: x.split(".")[0])
