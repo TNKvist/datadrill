@@ -133,7 +133,7 @@ class App(QMainWindow):
         if self.chosen_sheet == 'MRs':
             data.rename(columns={"Req. Item #": "Item"}, inplace=True)
 
-        ref = pd.read_csv("reference.csv")
+        ref = pd.read_csv("equipment.csv")
         ref['Material No'] = ref['Material No'].astype(
             str).apply(lambda x: x.split(".")[0])
 
@@ -148,13 +148,13 @@ class App(QMainWindow):
         return data, hdr
 
     def create_locations(self):
-        self.combo.addItem("Zinc")
-        self.combo.addItem("Calcium Phenate")
-        self.combo.addItem("VISJ")
-        self.combo.addItem("Blending")
-        self.combo.addItem("Dispersants")
-        self.combo.addItem("VisJ")
-        self.combo.addItem("Thermal")
+        self.combo.addItem("Unit1")
+        self.combo.addItem("Unit2")
+        self.combo.addItem("Unit3")
+        self.combo.addItem("Unit4")
+        self.combo.addItem("Unit5")
+        self.combo.addItem("Unit6")
+        self.combo.addItem("Unit7")
         self.combo.move(20, 120)
 
     def select_file(self):
@@ -278,7 +278,7 @@ class FilteredWindow(QWidget):
 
     def rightClick(self, row, column):
         self.t = None
-        self.ref1 = pd.read_csv("output.csv")
+        self.ref1 = pd.read_csv("equipment.csv")
         self.ref1['Material No'] = self.ref1['Material No'].astype(
             str).apply(lambda x: x.split(".")[0])
 
