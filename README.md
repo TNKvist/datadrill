@@ -3,7 +3,7 @@
 
 <p>DataDrill is a lightweight application which was built to filter and drill down into data which was being generated from an automated report. The report was missing critical information to make actionable decisions, so DataDrill fills in this information based on the user's request.</p>
 
-This application is built around relating part numbers to the equipment they are used in and the locations the equipment reside.
+<p>This application is built around relating part numbers to the equipment they are used in and the locations the equipment reside.</p>
 
 <b> Using the App </b>
 <ol>
@@ -11,7 +11,7 @@ This application is built around relating part numbers to the equipment they are
   <li>Select the location of interest from combo box (Units 1 through 7).</li>
   <li>Select which subset of information to view from combo box (A through C).</li>
   <li>Click GO!</li>
-  Right clicking any part number in "item" column will bring up which equipment the part is used in.<br>
-      4) Right click again to export the table as .csv.<br>
+  <li>Right clicking any "item" in item column will find all equipment which uses that item site-wide.<br>
+  <li>Right-clicking in this generated equipment list will allow for export to .csv</li>
 </ol>
 
