@@ -130,7 +130,7 @@ class App(QMainWindow):
         """
         data = data.loc[:, ~data.columns.str.contains("Do Not Modify")]
 
-        if self.chosen_sheet == 'MRs':
+        if self.chosen_sheet == 'B':
             data.rename(columns={"Req. Item #": "Item"}, inplace=True)
 
         ref = pd.read_csv("equipment.csv")
