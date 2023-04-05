@@ -16,127 +16,6 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton,
                              QTableWidgetItem,QSplashScreen)
 
 
-class Action(object):
-    def __init__(self):
-        self.t = None
-        
-        self.ref1 = pd.read_csv("output.csv")
-        self.ref1['Material No'] = self.ref1['Material No'].astype(
-            str).apply(lambda x: x.split(".")[0])
-
-    def rightClick(self, row, column, df):
-        key = df.iloc[row, column]
-        
-        if column == df.columns.get_loc('Item'):
-            ref1 = self.ref1.loc[self.ref1['Material No'] == key]
-            ref1.drop(columns='Material No', inplace=True)
-            hdr = list(ref1.columns)
-            self.t = FinalWindow(ref1, hdr, str(key))
-            self.t.show()
-
-
-class AnotherWindow(QWidget):
-
-    def __init__(self, df, hdr, title):
-        super().__init__()
-        self.df = df
-        self.hdr = hdr
-
-        self.colwidth = 500
-        self.left = 50
-        self.top = 50
-        self.width = 1500
-        self.height = 500
-        self.setWindowTitle(title)
-        self.setWindowIcon(QIcon('image.png'))
-
-        self.rownums = self.df.shape[0]
-        self.colnums = self.df.shape[1]
-
-        self.initUI()
-        self.action = Action()
-
-    def initUI(self):
-
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.createTable()
-        self.layout = QGridLayout()
-        self.layout.addWidget(self.tableWidget, 0, 0)
-        self.setLayout(self.layout)
-        self.show()
-
-    def createTable(self):
-
-       # Create table
-        self.tableWidget = QTableWidget()
-        self.tableWidget.setEditTriggers(QtWidgets.QTreeView.NoEditTriggers)
-
-        self.tableWidget.verticalHeader().setVisible(False)
-        self.tableWidget.horizontalHeader().setVisible(True)
-
-        #row and column count
-        self.tableWidget.setRowCount(self.rownums)
-        self.tableWidget.setColumnCount(self.colnums)
-        self.tableWidget.setSizeAdjustPolicy(
-            QtWidgets.QAbstractScrollArea.AdjustToContents)
-        self.tableWidget.setHorizontalHeaderLabels(self.hdr)
-
-        #set column width
-        for i in range(self.colnums):
-            self.tableWidget.setColumnWidth(i, self.colwidth)
-
-        #fill the table with co-ordinates
-        for i in range(self.rownums):
-            for j in range(self.colnums):
-                cell = QTableWidgetItem(str([self.df.iloc[i, j]][0]))
-                self.tableWidget.resizeColumnsToContents()
-                self.tableWidget.setItem(i, j, cell)
-
-        self.tableWidget.move(0, 30)
-        self.tableWidget.viewport().installEventFilter(self)
-
-    def eventFilter(self, source, event):
-        if self.tableWidget.selectedIndexes() != []:
-
-            if event.type() == QtCore.QEvent.MouseButtonRelease:
-                if event.button() == QtCore.Qt.RightButton:
-                    row = self.tableWidget.currentRow()
-                    col = self.tableWidget.currentColumn()
-                    self.action.rightClick(row, col, self.df)
-
-        return QtCore.QObject.event(source, event)
-
-
-class FinalWindow(AnotherWindow):
-
-    def __init__(self, df, hdr, title):
-        super().__init__(df, hdr, title)
-
-    def handleSave(self):
-        path, ok = QtWidgets.QFileDialog.getSaveFileName(
-            self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
-        if ok:
-            columns = range(self.tableWidget.columnCount())
-            header = [self.tableWidget.horizontalHeaderItem(column).text()
-                      for column in columns]
-            with open(path, 'w') as csvfile:
-                writer = csv.writer(
-                    csvfile, dialect='excel', lineterminator='\n')
-                writer.writerow(header)
-                for row in range(self.tableWidget.rowCount()):
-                    writer.writerow(
-                        self.tableWidget.item(row, column).text()
-                        for column in columns)
-
-    def eventFilter(self, source, event):
-        if self.tableWidget.selectedIndexes() != []:
-
-            if event.type() == QtCore.QEvent.MouseButtonRelease:
-                if event.button() == QtCore.Qt.RightButton:
-                    self.handleSave()
-        return QtCore.QObject.event(source, event)
-
-
 class App(QMainWindow):
 
     def __init__(self):
@@ -221,7 +100,7 @@ class App(QMainWindow):
             msg.exec_()
         else:
             self.w = None
-            self.w = AnotherWindow(data, hdr, self.location)
+            self.w = FilteredWindow(data, hdr, self.location)
             self.w.show()
 
     def clean_data(self, data):
@@ -296,6 +175,127 @@ class App(QMainWindow):
         self.splash = QSplashScreen(QPixmap('logo.jpg'))
         self.splash.show()
         QTimer.singleShot(1500, self.splash.close)
+
+
+class Action(object):
+    def __init__(self):
+        self.t = None
+
+        self.ref1 = pd.read_csv("output.csv")
+        self.ref1['Material No'] = self.ref1['Material No'].astype(
+            str).apply(lambda x: x.split(".")[0])
+
+    def rightClick(self, row, column, df):
+        key = df.iloc[row, column]
+
+        if column == df.columns.get_loc('Item'):
+            ref1 = self.ref1.loc[self.ref1['Material No'] == key]
+            ref1.drop(columns='Material No', inplace=True)
+            hdr = list(ref1.columns)
+            self.t = EquipmentWindow(ref1, hdr, str(key))
+            self.t.show()
+
+
+class FilteredWindow(QWidget):
+
+    def __init__(self, df, hdr, title):
+        super().__init__()
+        self.df = df
+        self.hdr = hdr
+
+        self.colwidth = 500
+        self.left = 50
+        self.top = 50
+        self.width = 1500
+        self.height = 500
+        self.setWindowTitle(title)
+        self.setWindowIcon(QIcon('image.png'))
+
+        self.rownums = self.df.shape[0]
+        self.colnums = self.df.shape[1]
+
+        self.initUI()
+        self.action = Action()
+
+    def initUI(self):
+
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.createTable()
+        self.layout = QGridLayout()
+        self.layout.addWidget(self.tableWidget, 0, 0)
+        self.setLayout(self.layout)
+        self.show()
+
+    def createTable(self):
+
+       # Create table
+        self.tableWidget = QTableWidget()
+        self.tableWidget.setEditTriggers(QtWidgets.QTreeView.NoEditTriggers)
+
+        self.tableWidget.verticalHeader().setVisible(False)
+        self.tableWidget.horizontalHeader().setVisible(True)
+
+        #row and column count
+        self.tableWidget.setRowCount(self.rownums)
+        self.tableWidget.setColumnCount(self.colnums)
+        self.tableWidget.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.tableWidget.setHorizontalHeaderLabels(self.hdr)
+
+        #set column width
+        for i in range(self.colnums):
+            self.tableWidget.setColumnWidth(i, self.colwidth)
+
+        #fill the table with co-ordinates
+        for i in range(self.rownums):
+            for j in range(self.colnums):
+                cell = QTableWidgetItem(str([self.df.iloc[i, j]][0]))
+                self.tableWidget.resizeColumnsToContents()
+                self.tableWidget.setItem(i, j, cell)
+
+        self.tableWidget.move(0, 30)
+        self.tableWidget.viewport().installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if self.tableWidget.selectedIndexes() != []:
+
+            if event.type() == QtCore.QEvent.MouseButtonRelease:
+                if event.button() == QtCore.Qt.RightButton:
+                    row = self.tableWidget.currentRow()
+                    col = self.tableWidget.currentColumn()
+                    self.action.rightClick(row, col, self.df)
+
+        return QtCore.QObject.event(source, event)
+
+
+class EquipmentWindow(FilteredWindow):
+
+    def __init__(self, df, hdr, title):
+        super().__init__(df, hdr, title)
+
+    def handleSave(self):
+        path, ok = QtWidgets.QFileDialog.getSaveFileName(
+            self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
+        if ok:
+            columns = range(self.tableWidget.columnCount())
+            header = [self.tableWidget.horizontalHeaderItem(column).text()
+                      for column in columns]
+            with open(path, 'w') as csvfile:
+                writer = csv.writer(
+                    csvfile, dialect='excel', lineterminator='\n')
+                writer.writerow(header)
+                for row in range(self.tableWidget.rowCount()):
+                    writer.writerow(
+                        self.tableWidget.item(row, column).text()
+                        for column in columns)
+
+    def eventFilter(self, source, event):
+        if self.tableWidget.selectedIndexes() != []:
+
+            if event.type() == QtCore.QEvent.MouseButtonRelease:
+                if event.button() == QtCore.Qt.RightButton:
+                    self.handleSave()
+        return QtCore.QObject.event(source, event)
 
 
 if __name__ == '__main__':
