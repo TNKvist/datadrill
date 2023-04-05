@@ -1,8 +1,6 @@
 # DataDrill
 <p>Note - This app was created to work on specific reports with particularly defined data. Some code and all data has been replaced with dummy information in this repository.</p>
 
-<p>DataDrill is a lightweight application which was built to filter and drill down into data which was being generated from an automated report. The report was missing critical information to make actionable decisions, so DataDrill fills in this information based on the user's request.</p>
-
 <p>The purpose of this app is to pre-filter reports to show only line items which relate to the user's location. Then, the user is able to drill down into each line item to find where that equipment is used across all locations..</p>
 
 <b> Using the App </b>
