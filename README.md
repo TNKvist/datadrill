@@ -5,7 +5,12 @@ DataDrill is a lightweight application which was built to filter and drill down 
 This application is built around relating part numbers to the equipment they are used in and the locations the equipment reside.
 
 <b> Using the App </b>
-  1) Select the report.<br>
-  2) Select the location of interest. <br>
-      3) Right clicking any part number will bring up which equipment the part is used in.<br>
+<ol>
+  Select the report (Client Open Orders) with File button and open.<br>
+  <li>2) Select the location of interest from combo box (Units 1 through 7). </li>
+  3) Select which subset of information to view from combo box (A through C). <br>
+  4) Click GO!
+  Right clicking any part number in "item" column will bring up which equipment the part is used in.<br>
       4) Right click again to export the table as .csv.<br>
+</ol>
+#Note - This app was created to work on specific reports with particularly defined data. Some code and all data has been replaced with dummy information in this repository.
