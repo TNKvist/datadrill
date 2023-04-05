@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton,
                              QTableWidgetItem,QSplashScreen)
 
 
+#Main Window to select Files, Pick Location and which sheet to parse
 class App(QMainWindow):
 
     def __init__(self):
@@ -48,25 +49,30 @@ class App(QMainWindow):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
+        #Build the Location Combo Box
         self.combo = QComboBox(self)
         self.create_locations()
 
+        #Initialize the sheet selector combo box to be populated later
         self.combo1 = QComboBox(self)
         self.combo1.addItem("tbd")
         self.combo1.move(320, 120)
 
+        #build the "instructions" label
         self.label = QLabel(self)
         self.label.setFont(QFont("Roboto", 10))
         self.label.setText("Select File. Then Location/Sheet. Then GO!")
         self.label.adjustSize()
         self.label.move(20, 20)
 
+        #Build the label to show which file is selected. to be populated later.
         self.label1 = QLabel(self)
         self.label1.setText("No file selected yet.")
         self.label1.setFont(QFont("Roboto", 10))
         self.label1.adjustSize()
         self.label1.move(20, 85)
 
+        #Build the label to show what file type was selected. Populated later.
         self.label2 = QLabel(self)
         self.label2.setText("TBD")
         self.label2.setFont(QFont("Roboto", 10))
@@ -74,23 +80,34 @@ class App(QMainWindow):
         self.label2.move(170, 120)
         self.label2.hide()
 
+        #Create the button which triggers the file selector.
         button = QPushButton('File', self)
         button.move(20, 50)
         button.clicked.connect(self.select_file)
+        #go to def "select file"
 
+        #build the button which creates the next "filtered view" window.
         self.button1 = QPushButton('GO!', self)
         self.button1.move(170, 165)
         self.button1.hide()
         self.button1.clicked.connect(self.show_new_window)
+        #go to def "show new window"
 
         self.show()
 
     def show_new_window(self):
+        #Read the selected values from combo boxes
         self.chosen_sheet = self.combo1.currentText()
         self.location = self.combo.currentText()
+
+        #create a datafarme from the chosen sheet
         data = self.df[self.chosen_sheet]
+
+        #return cleaned data and the headers from the dataframe in order
+        #to build the "filtered" view window.
         data, hdr = self.clean_data(data)
 
+        #check to make sure items meeting that criteria were found
         if data.shape[0] < 1:
             msg = QMessageBox()
             msg.setWindowTitle("Complete")
@@ -99,11 +116,18 @@ class App(QMainWindow):
             msg.setWindowIcon(QIcon('image.png'))
             msg.exec_()
         else:
+            #Createthe "filtered" view window.
             self.w = None
             self.w = FilteredWindow(data, hdr, self.location)
             self.w.show()
 
     def clean_data(self, data):
+        """
+        data : pandas dataframe
+        -------
+        data : pandas dataframe
+        hdr : list
+        """
         data = data.loc[:, ~data.columns.str.contains("Do Not Modify")]
 
         if self.chosen_sheet == 'MRs':
@@ -177,28 +201,14 @@ class App(QMainWindow):
         QTimer.singleShot(1500, self.splash.close)
 
 
-class Action(object):
-    def __init__(self):
-        self.t = None
-
-        self.ref1 = pd.read_csv("output.csv")
-        self.ref1['Material No'] = self.ref1['Material No'].astype(
-            str).apply(lambda x: x.split(".")[0])
-
-    def rightClick(self, row, column, df):
-        key = df.iloc[row, column]
-
-        if column == df.columns.get_loc('Item'):
-            ref1 = self.ref1.loc[self.ref1['Material No'] == key]
-            ref1.drop(columns='Material No', inplace=True)
-            hdr = list(ref1.columns)
-            self.t = EquipmentWindow(ref1, hdr, str(key))
-            self.t.show()
-
-
 class FilteredWindow(QWidget):
 
     def __init__(self, df, hdr, title):
+        """
+        df : pandas dataframe - filtered file
+        hdr : list - headers for df
+        title : string - location chosen from App main window combo box.
+        """
         super().__init__()
         self.df = df
         self.hdr = hdr
@@ -215,7 +225,6 @@ class FilteredWindow(QWidget):
         self.colnums = self.df.shape[1]
 
         self.initUI()
-        self.action = Action()
 
     def initUI(self):
 
@@ -263,17 +272,37 @@ class FilteredWindow(QWidget):
                 if event.button() == QtCore.Qt.RightButton:
                     row = self.tableWidget.currentRow()
                     col = self.tableWidget.currentColumn()
-                    self.action.rightClick(row, col, self.df)
+                    self.rightClick(row, col)
 
         return QtCore.QObject.event(source, event)
+
+    def rightClick(self, row, column):
+        self.t = None
+        self.ref1 = pd.read_csv("output.csv")
+        self.ref1['Material No'] = self.ref1['Material No'].astype(
+            str).apply(lambda x: x.split(".")[0])
+
+        key = self.df.iloc[row, column]
+
+        if column == self.df.columns.get_loc('Item'):
+            ref1 = self.ref1.loc[self.ref1['Material No'] == key]
+            ref1.drop(columns='Material No', inplace=True)
+            hdr = list(ref1.columns)
+            self.t = EquipmentWindow(ref1, hdr, str(key))
+            self.t.show()
 
 
 class EquipmentWindow(FilteredWindow):
 
     def __init__(self, df, hdr, title):
+        """
+        df : pandas dataframe - equipment matching selected equipment #
+        hdr : list - header for df^
+        title : string - equipment # selected
+        """
         super().__init__(df, hdr, title)
 
-    def handleSave(self):
+    def rightClick(self):
         path, ok = QtWidgets.QFileDialog.getSaveFileName(
             self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
         if ok:
@@ -294,7 +323,7 @@ class EquipmentWindow(FilteredWindow):
 
             if event.type() == QtCore.QEvent.MouseButtonRelease:
                 if event.button() == QtCore.Qt.RightButton:
-                    self.handleSave()
+                    self.rightClick()
         return QtCore.QObject.event(source, event)
 
 
